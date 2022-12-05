@@ -14,8 +14,8 @@ const Product = ({
           <div className="product-image-wrap">
             <img
               src={urlFor(image && image[0]).url()}
-              width={250}
-              height={300}
+              width={200}
+              height={240}
               className="product-image"
             />
           </div>

@@ -1,18 +1,37 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { client, urlFor } from "../../lib/client";
-import {
-  AiOutlineMinus,
-  AiOutlinePlus,
-  AiFillStar,
-  AiOutlineStar,
-} from "react-icons/ai";
+import { AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
 import { Product } from "../../components";
+import { Review } from "../../components";
+import { Star } from "../../components";
+import { ReviewDetails } from "../../components";
 import { useStateContext } from "../../context/StateContext";
+import { useRouter } from "next/router";
 
-const ProductDetails = ({ product, products }) => {
+const ProductDetails = ({ product, products, reviews }) => {
   const { image, name, details, price } = product;
   const [index, Setindex] = useState(0);
-  const { dec, inc, qty, onAdd, setShowCart } = useStateContext();
+  const [totalReview, setTotalReview] = useState(0);
+  const [totalScore, setTotalScore] = useState(0);
+  const { dec, inc, qty, onAdd, setShowCart, showReview, setShowReview } =
+    useStateContext();
+
+  const location = useRouter();
+
+  useEffect(() => {
+    let a = 0;
+    let score = 0;
+    reviews.map((review) => {
+      if (review.productId === product._id) {
+        a += 1;
+        score += parseInt(review.score);
+      }
+      let finalScore = a ? score / a : 0;
+
+      setTotalReview(a);
+      setTotalScore(finalScore);
+    });
+  }, [location.asPath]);
 
   const handleBuyNow = () => {
     onAdd(product, qty);
@@ -28,6 +47,7 @@ const ProductDetails = ({ product, products }) => {
               src={urlFor(image && image[index])}
               width="100%"
               height="100%"
+              className="product-detail-image"
               object-fit="cover"
             />
           </div>
@@ -47,14 +67,22 @@ const ProductDetails = ({ product, products }) => {
         <div className="product-detail-desc">
           <h1>{name}</h1>
           <div className="reviews">
-            <div>
-              <AiFillStar />
-              <AiFillStar />
-              <AiFillStar />
-              <AiFillStar />
-              <AiOutlineStar />
+            <a href="#review">
+              <div className="reviews-star">
+                <div>
+                  <Star num={totalScore} />
+                </div>
+                <p>
+                  {totalScore.toFixed(2)} ({totalReview})
+                </p>
+              </div>
+            </a>
+            <div
+              style={{ cursor: "pointer" }}
+              onClick={() => setShowReview(true)}
+            >
+              Leave a review
             </div>
-            <p>(20)</p>
           </div>
           <h4>Details: </h4>
           <p>{details}</p>
@@ -75,7 +103,9 @@ const ProductDetails = ({ product, products }) => {
             <button
               type="button"
               className="add-to-cart"
-              onClick={() => onAdd(product, qty)}
+              onClick={() => {
+                onAdd(product, qty);
+              }}
             >
               Add to Cart
             </button>
@@ -85,22 +115,32 @@ const ProductDetails = ({ product, products }) => {
           </div>
         </div>
       </div>
+      <div className="reviews-container" id="review">
+        {reviews.map((review) => {
+          return review.productId === product._id ? (
+            <Review key={review._id} content={review} />
+          ) : (
+            <></>
+          );
+        })}
+      </div>
       <div className="maylike-products-wrapper">
         <h2>Similar Products</h2>
-        <div className="marquee">
-          <div className="maylike-products-container">
-            {products
-              .slice(0, 5)
-              .map((item) =>
-                item._id !== product._id ? (
-                  <Product key={item._id} product={item} />
-                ) : (
-                  <></>
-                )
-              )}
-          </div>
+
+        <div className="maylike-products-container">
+          {products
+            .slice(0, 5)
+            .map((item) =>
+              item._id !== product._id &&
+              item.tag.some((el) => product.tag.includes(el)) ? (
+                <Product key={item._id} product={item} />
+              ) : (
+                <></>
+              )
+            )}
         </div>
       </div>
+      {showReview && <ReviewDetails product={product} />}
     </div>
   );
 };
@@ -113,6 +153,7 @@ export const getStaticPaths = async () => {
   }`;
 
   const products = await client.fetch(query);
+
   const paths = products.map((product) => ({
     params: {
       slug: product.slug.current,
@@ -128,12 +169,14 @@ export const getStaticPaths = async () => {
 export const getStaticProps = async ({ params: { slug } }) => {
   const query = `*[_type == "product" && slug.current == '${slug}'][0]`;
   const productsQuery = '*[_type == "product"]';
+  const reviewQuery = '*[_type == "review"]';
 
   const product = await client.fetch(query);
   const products = await client.fetch(productsQuery);
+  const reviews = await client.fetch(reviewQuery);
 
   return {
-    props: { products, product },
+    props: { products, product, reviews },
   };
 };
 

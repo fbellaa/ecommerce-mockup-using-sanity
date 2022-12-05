@@ -36,7 +36,7 @@ const Cart = () => {
     if (response.status === 500) return;
 
     const data = await response.json();
-    Toast.loading("Loading...");
+    Toast.loading("Redirecting, please wait a moment");
     stripe.redirectToCheckout({ sessionId: data.id });
   };
 

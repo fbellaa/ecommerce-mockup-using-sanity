@@ -1,14 +1,16 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { toast } from "react-hot-toast";
 
 const Context = createContext();
 
 export const StateContext = ({ children }) => {
   const [showCart, setShowCart] = useState(false);
+  const [showReview, setShowReview] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [totalQuantities, setTotalQuantities] = useState(0);
   const [qty, setQty] = useState(1);
+  const [width, setWidth] = useState(0);
 
   let foundProduct;
 
@@ -33,16 +35,17 @@ export const StateContext = ({ children }) => {
       });
 
       setCartItems(updatedCartItems);
-      localStorage.setItem("cart", JSON.stringify(updatedCartItems));
+      // localStorage.setItem("cart", JSON.stringify(updatedCartItems));
     } else {
       product.quantity = quantity;
       setCartItems([...cartItems, { ...product }]);
-      localStorage.setItem(
-        "cart",
-        JSON.stringify([...cartItems, { ...product }])
-      );
+      // localStorage.setItem(
+      //   "cart",
+      //   JSON.stringify([...cartItems, { ...product }])
+      // );
     }
     toast.success(`${qty} ${product.name} added to the cart!`);
+    setQty(1);
   };
 
   const onRemove = (product) => {
@@ -61,7 +64,7 @@ export const StateContext = ({ children }) => {
 
   const toggleCartItemQuantity = (id, value) => {
     foundProduct = cartItems.find((item) => item._id === id);
-    index = cartItems.findIndex((product) => product._id === id);
+    // let index = cartItems.findIndex((product) => product._id === id);
 
     if (value === "inc") {
       setCartItems((prevCartItems) =>
@@ -103,6 +106,8 @@ export const StateContext = ({ children }) => {
       value={{
         showCart,
         setShowCart,
+        showReview,
+        setShowReview,
         cartItems,
         setCartItems,
         totalPrice,
@@ -115,6 +120,8 @@ export const StateContext = ({ children }) => {
         onAdd,
         onRemove,
         toggleCartItemQuantity,
+        width,
+        setWidth,
       }}
     >
       {children}

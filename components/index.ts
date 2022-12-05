@@ -5,3 +5,7 @@ export { default as HeroBanner } from "./HeroBanner";
 export { default as Layout } from "./Layout";
 export { default as NavBar } from "./NavBar";
 export { default as Product } from "./Product";
+export { default as TagBar } from "./TagBar";
+export { default as ReviewDetails } from "./ReviewDetails";
+export { default as Review } from "./Review";
+export { default as Star } from "./Star";
